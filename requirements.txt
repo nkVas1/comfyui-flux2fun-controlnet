@@ -1,0 +1,9 @@
+# ComfyUI Flux2 Fun ControlNet
+# 
+# Note: This package is designed to run within ComfyUI.
+# ComfyUI provides torch and other dependencies.
+# No additional dependencies required beyond ComfyUI itself.
+#
+# Install ComfyUI: https://github.com/comfyanonymous/ComfyUI
+
+torch>=2.0.0

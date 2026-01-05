@@ -1,0 +1,61 @@
+[project]
+name = "comfyui-flux2fun-controlnet"
+version = "1.0.0"
+description = "ComfyUI implementation of FLUX.2-dev-Fun-Controlnet-Union from Alibaba's VideoX-Fun"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Bryan McGuire"}
+]
+keywords = [
+    "comfyui",
+    "flux",
+    "controlnet",
+    "stable-diffusion",
+    "image-generation",
+    "ai",
+    "deep-learning"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+requires-python = ">=3.10"
+
+dependencies = [
+    "torch>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[project.urls]
+Homepage = "https://github.com/bmcguire/comfyui-flux2fun-controlnet"
+Repository = "https://github.com/bmcguire/comfyui-flux2fun-controlnet"
+Issues = "https://github.com/bmcguire/comfyui-flux2fun-controlnet/issues"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]  # line too long - handled by formatter
