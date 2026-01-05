@@ -139,7 +139,7 @@ Restart ComfyUI after installation.
 ## Credits
 
 - **Original Model**: [alibaba-pai/FLUX.2-dev-Fun-Controlnet-Union](https://huggingface.co/alibaba-pai/FLUX.2-dev-Fun-Controlnet-Union)
-- **Reference Implementation**: [VideoX-Fun](https://github.com/alibaba/VideoX-Fun)
+- **Reference Implementation**: [VideoX-Fun](https://github.com/aigc-apps/VideoX-Fun.git)
 
 ## License
 
