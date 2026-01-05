@@ -9,14 +9,14 @@ A **unified ControlNet** that supports multiple control modes with a single chec
 
 ## Supported Control Types
 
-| Control Type | Description |
-|-------------|-------------|
-| **Pose** | OpenPose skeleton |
-| **Canny** | Edge detection |
-| **Depth** | Depth maps |
-| **HED** | Soft edge detection |
-| **MLSD** | Line segment detection |
-| **Tile** | Upscaling/detail enhancement |
+| Control Type | Description                  |
+|--------------|------------------------------|
+| **Pose**     | OpenPose skeleton            |
+| **Canny**    | Edge detection               |
+| **Depth**    | Depth maps                   |
+| **HED**      | Soft edge detection          |
+| **MLSD**     | Line segment detection       |
+| **Tile**     | Upscaling/detail enhancement |
 
 The model automatically detects the control type from your input image.
 
@@ -54,30 +54,30 @@ Download the ControlNet checkpoint and place in `ComfyUI/models/controlnet/`:
 
 Loads the ControlNet checkpoint.
 
-| Input | Type | Description |
-|-------|------|-------------|
+| Input           | Type     | Description            |
+|-----------------|----------|------------------------|
 | controlnet_name | dropdown | Select checkpoint file |
 
-| Output | Type | Description |
-|--------|------|-------------|
+| Output     | Type                 | Description  |
+|------------|----------------------|--------------|
 | controlnet | FLUX2_FUN_CONTROLNET | Loaded model |
 
 ### Apply Flux2 Fun ControlNet
 
 Applies ControlNet to conditioning.
 
-| Input | Type | Description |
-|-------|------|-------------|
-| conditioning | CONDITIONING | Text conditioning from CLIP |
-| controlnet | FLUX2_FUN_CONTROLNET | Loaded ControlNet |
-| vae | VAE | Flux VAE |
-| strength | FLOAT | Control strength (0.0 - 2.0) |
-| control_image | IMAGE (optional) | Control signal |
-| mask | MASK (optional) | Inpaint mask |
-| inpaint_image | IMAGE (optional) | Image to inpaint |
+| Input         | Type                 | Description                  |
+|---------------|----------------------|------------------------------|
+| conditioning  | CONDITIONING         | Text conditioning from CLIP  |
+| controlnet    | FLUX2_FUN_CONTROLNET | Loaded ControlNet            |
+| vae           | VAE                  | Flux VAE                     |
+| strength      | FLOAT                | Control strength (0.0 - 2.0) |
+| control_image | IMAGE (optional)     | Control signal               |
+| mask          | MASK (optional)      | Inpaint mask                 |
+| inpaint_image | IMAGE (optional)     | Image to inpaint             |
 
-| Output | Type | Description |
-|--------|------|-------------|
+| Output       | Type         | Description           |
+|--------------|--------------|-----------------------|
 | conditioning | CONDITIONING | Modified conditioning |
 
 ## Usage
@@ -88,7 +88,7 @@ For pose/canny/depth/HED/MLSD/tile control:
 
 1. Load your control image (pose skeleton, canny edges, depth map, etc.)
 2. Connect to `control_image` input
-3. Set strength to **0.65 - 0.80**
+3. Set strength to **0.65–0.80**
 4. Leave `mask` and `inpaint_image` disconnected
 
 ### Control + Inpaint Mode (Experimental)
@@ -98,16 +98,16 @@ For regional regeneration with structural guidance:
 1. Connect `control_image` (structural guide for the region)
 2. Connect `mask` (white = area to regenerate)
 3. Connect `inpaint_image` (original image)
-4. Set strength to **0.25 - 0.40**
+4. Set strength to **0.25–0.40**
 
 > **Note:** This is mask-guided regional regeneration, not traditional context-aware inpainting. For best inpainting results, use a dedicated inpaint model like Flux Fill.
 
 ## Recommended Settings
 
-| Mode | Strength | Steps | CFG | Notes |
-|------|----------|-------|-----|-------|
+| Mode                       | Strength    | Steps | CFG     | Notes            |
+|----------------------------|-------------|-------|---------|------------------|
 | Control (pose/canny/depth) | 0.65 - 0.80 | 25-50 | 3.5-4.5 | Primary use case |
-| Control + Inpaint | 0.25 - 0.40 | 25-50 | 3.5-4.5 | Experimental |
+| Control + Inpaint          | 0.25 - 0.40 | 25-50 | 3.5-4.5 | Experimental     |
 
 ## Example Workflows
 
@@ -129,7 +129,7 @@ Restart ComfyUI after installation.
 ### Black output / no effect
 - Check that strength is > 0
 - Verify VAE is connected
-- Ensure control image is loaded correctly
+- Ensure the control image is loaded correctly
 
 ### Out of memory
 - Reduce image resolution

@@ -42,8 +42,13 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/bmcguire/comfyui-flux2fun-controlnet"
-Repository = "https://github.com/bmcguire/comfyui-flux2fun-controlnet"
+Repository = "https://github.com/bryanmcguire/comfyui-flux2fun-controlnet"
 Issues = "https://github.com/bmcguire/comfyui-flux2fun-controlnet/issues"
+
+[tool.comfy]
+PublisherId = "scrybz"
+DisplayName = "Flux2 Fun ControlNet"
+Icon = "https://raw.githubusercontent.com/bryanmcguire/comfyui-flux2fun-controlnet/main/.github/icon.png"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
