@@ -362,13 +362,18 @@ class ControlNetWrapper:
     into lists in transformer_options, which are processed by the patch.
     """
     
-    def __init__(self, controlnet, control_context, strength, ctrl_h, ctrl_w):
+    def __init__(self, controlnet, control_context, strength, ctrl_h, ctrl_w, low_vram=False):
         self.controlnet = controlnet
         self.control_context = control_context
         self.strength = strength
         self.ctrl_h = ctrl_h
         self.ctrl_w = ctrl_w
+        self.low_vram = low_vram
         self.previous_controlnet = None
+        
+        # In low_vram mode, keep control_context on CPU until needed
+        if low_vram and control_context is not None:
+            self.control_context = control_context.cpu()
         
         class HooksContainer:
             hooks = []
@@ -391,6 +396,7 @@ class ControlNetWrapper:
                 transformer_options['flux2_fun_control_contexts'] = []
                 transformer_options['flux2_fun_control_scales'] = []
                 transformer_options['flux2_fun_ctrl_dims'] = []
+                transformer_options['flux2_fun_low_vram'] = self.low_vram
             
             # Append this controlnet's data to the lists
             transformer_options['flux2_fun_controlnets'].append(self.controlnet)
@@ -405,7 +411,7 @@ class ControlNetWrapper:
         return output
     
     def copy(self):
-        c = ControlNetWrapper(self.controlnet, self.control_context, self.strength, self.ctrl_h, self.ctrl_w)
+        c = ControlNetWrapper(self.controlnet, self.control_context, self.strength, self.ctrl_h, self.ctrl_w, self.low_vram)
         c.previous_controlnet = self.previous_controlnet
         return c
     
@@ -525,6 +531,13 @@ class Flux2FunControlNetApply:
         device = comfy.model_management.get_torch_device()
         dtype = next(controlnet.parameters()).dtype
         
+        # Detect ComfyUI's global low VRAM mode
+        try:
+            from comfy.model_management import vram_state, VRAMState
+            low_vram = vram_state in (VRAMState.LOW_VRAM, VRAMState.NO_VRAM)
+        except (ImportError, AttributeError):
+            low_vram = False
+        
         # Determine dimensions from available image
         if control_image is not None:
             bs, h, w, _ = control_image.shape
@@ -614,9 +627,9 @@ class Flux2FunControlNetApply:
         else:
             mode = "inpaint"
         
-        print(f"[Flux2 Fun] Mode: {mode}, strength: {strength}")
+        print(f"[Flux2 Fun] Mode: {mode}, strength: {strength}, low_vram: {low_vram}")
         
-        wrapper = ControlNetWrapper(controlnet, control_context, strength, lat_h, lat_w)
+        wrapper = ControlNetWrapper(controlnet, control_context, strength, lat_h, lat_w, low_vram)
         
         c = [[t[0], t[1].copy()] for t in conditioning]
         for t in c:

@@ -131,6 +131,7 @@ def patched_forward_orig(
     flux2_fun_control_contexts = transformer_options.get('flux2_fun_control_contexts', [])
     flux2_fun_control_scales = transformer_options.get('flux2_fun_control_scales', [])
     flux2_fun_ctrl_dims = transformer_options.get('flux2_fun_ctrl_dims', [])
+    low_vram = transformer_options.get('flux2_fun_low_vram', False)
     
     # Accumulated hints from all controlnets: {layer_idx: [(hint, scale, main_tokens), ...]}
     all_controlnet_hints = {}
@@ -138,6 +139,9 @@ def patched_forward_orig(
     if not hasattr(self, '_flux2_fun_step_count'):
         self._flux2_fun_step_count = 0
     debug = (self._flux2_fun_step_count == 0)
+    
+    if debug and low_vram and flux2_fun_controlnets:
+        print(f"[Flux2 Fun] Low VRAM mode enabled - using CPU offloading")
 
     # Generate hints from each controlnet
     for cn_idx, (controlnet, control_context, control_scale, (ctrl_h, ctrl_w)) in enumerate(
@@ -146,6 +150,10 @@ def patched_forward_orig(
         
         if controlnet is None or control_context is None:
             continue
+        
+        # Low VRAM: move controlnet to GPU for processing
+        if low_vram:
+            controlnet.to(img.device)
             
         control_context = control_context.to(device=img.device, dtype=img.dtype)
         
@@ -200,6 +208,11 @@ def patched_forward_orig(
             
             if debug:
                 print(f"[Flux2 Fun] ControlNet {cn_idx}: generated {len(controlnet_hints)} hints, scale={control_scale}")
+            
+            # Low VRAM: move controlnet back to CPU after generating hints
+            if low_vram:
+                controlnet.to('cpu')
+                torch.cuda.empty_cache()
                     
         except Exception as e:
             print(f"[Flux2 Fun] Error generating hints for controlnet {cn_idx}: {e}")
@@ -277,6 +290,10 @@ def patched_forward_orig(
             
             # Free hints for this layer after application
             del all_controlnet_hints[i]
+            
+            # Low VRAM: clear cache after applying hints
+            if low_vram:
+                torch.cuda.empty_cache()
 
         # Standard ComfyUI controlnet
         if control is not None:
