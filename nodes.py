@@ -569,6 +569,7 @@ class Flux2FunControlNetApply:
             with torch.no_grad():
                 inpaint_latents = vae.encode(inp_img)
             inpaint_flat = inpaint_latents.to(device=device, dtype=dtype).flatten(2).permute(0, 2, 1)
+            del inpaint_latents, inp_img  # Free VRAM
         else:
             inpaint_flat = torch.zeros((bs, lat_h * lat_w, 128), device=device, dtype=dtype)
         
@@ -580,6 +581,7 @@ class Flux2FunControlNetApply:
             with torch.no_grad():
                 control_latents = vae.encode(ctrl_img)
             control_flat = control_latents.to(device=device, dtype=dtype).flatten(2).permute(0, 2, 1)
+            del control_latents, ctrl_img  # Free VRAM
         else:
             control_flat = torch.zeros((bs, lat_h * lat_w, 128), device=device, dtype=dtype)
         
@@ -595,6 +597,14 @@ class Flux2FunControlNetApply:
         
         # Build control context: [control(128), mask(4), inpaint(128)] = 260
         control_context = torch.cat([control_flat, mask_flat, inpaint_flat], dim=2)
+        
+        # Free intermediate tensors
+        del control_flat, mask_flat, inpaint_flat
+        if mask_for_img is not None:
+            del mask_for_img
+        if mask_binary is not None:
+            del mask_binary
+        torch.cuda.empty_cache()
         
         # Determine mode for logging
         if control_image is not None and inpaint_image is not None:

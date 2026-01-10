@@ -185,6 +185,9 @@ def patched_forward_orig(
                 debug=debug and cn_idx == 0,
             )
             
+            # Free temporary tensor
+            del img_for_control
+            
             # Store hints with their scale and target token count
             control_layers_mapping = controlnet.control_layers_mapping
             for layer_idx, hint_idx in control_layers_mapping.items():
@@ -271,6 +274,9 @@ def patched_forward_orig(
 
                 # Apply hint ONLY to main image tokens, not reference latent tokens
                 img[:, :main_img_tokens] = img[:, :main_img_tokens] + hint * control_scale
+            
+            # Free hints for this layer after application
+            del all_controlnet_hints[i]
 
         # Standard ComfyUI controlnet
         if control is not None:
