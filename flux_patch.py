@@ -3,14 +3,28 @@ Flux2 Fun ControlNet - Runtime Patch for ComfyUI
 
 Patches ComfyUI's Flux model to support ControlNet hint injection.
 Applied automatically on import - no core file modifications needed.
+
+Memory Optimizations (v2.0):
+- Lazy controlnet loading: GPU only during forward pass
+- Immediate cleanup after hint generation
+- Support for container-based memory management
 """
 
+import gc
 import math
 import torch
 from torch import Tensor
+from typing import Optional, List, Dict, Any, Tuple
 
 _original_forward_orig = None
 _patched = False
+
+
+def _soft_empty_cache():
+    """Clear GPU cache if available."""
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    gc.collect()
 
 
 def convert_pe_to_diffusers(pe):
@@ -131,6 +145,7 @@ def patched_forward_orig(
     flux2_fun_control_contexts = transformer_options.get('flux2_fun_control_contexts', [])
     flux2_fun_control_scales = transformer_options.get('flux2_fun_control_scales', [])
     flux2_fun_ctrl_dims = transformer_options.get('flux2_fun_ctrl_dims', [])
+    flux2_fun_containers = transformer_options.get('flux2_fun_containers', [])
     low_vram = transformer_options.get('flux2_fun_low_vram', False)
     
     # Accumulated hints from all controlnets: {layer_idx: [(hint, scale, main_tokens), ...]}
@@ -151,8 +166,15 @@ def patched_forward_orig(
         if controlnet is None or control_context is None:
             continue
         
-        # Low VRAM: move controlnet to GPU for processing
-        if low_vram:
+        # Get container if available for proper memory management
+        container = flux2_fun_containers[cn_idx] if cn_idx < len(flux2_fun_containers) else None
+        
+        # Move controlnet to GPU for processing
+        if container is not None:
+            # Use container's smart device placement
+            container.to_device(img.device, force=True)
+        elif low_vram:
+            # Legacy: direct move
             controlnet.to(img.device)
             
         control_context = control_context.to(device=img.device, dtype=img.dtype)
@@ -211,8 +233,11 @@ def patched_forward_orig(
             
             # Low VRAM: move controlnet back to CPU after generating hints
             if low_vram:
-                controlnet.to('cpu')
-                torch.cuda.empty_cache()
+                if container is not None:
+                    container.offload_to_cpu()
+                else:
+                    controlnet.to('cpu')
+                _soft_empty_cache()
                     
         except Exception as e:
             print(f"[Flux2 Fun] Error generating hints for controlnet {cn_idx}: {e}")
@@ -293,7 +318,7 @@ def patched_forward_orig(
             
             # Low VRAM: clear cache after applying hints
             if low_vram:
-                torch.cuda.empty_cache()
+                _soft_empty_cache()
 
         # Standard ComfyUI controlnet
         if control is not None:
