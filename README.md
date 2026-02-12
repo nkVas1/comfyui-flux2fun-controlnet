@@ -7,6 +7,13 @@ ComfyUI implementation of [FLUX.2-dev-Fun-Controlnet-Union](https://huggingface.
 
 A **unified ControlNet** that supports multiple control modes with a single checkpoint — no mode switching required!
 
+## ✨ Features
+
+- **Low VRAM Optimized**: Works on 8GB GPUs with `--lowvram` flag
+- **Lazy Loading**: Model stays on CPU until inference
+- **Multiple Control Types**: Pose, Canny, Depth, HED, MLSD, Tile
+- **Chainable**: Stack multiple controlnets with different strengths
+
 ## Supported Control Types
 
 | Control Type | Description                  |
@@ -48,15 +55,40 @@ Download the ControlNet checkpoint and place in `ComfyUI/models/controlnet/`:
 - Python 3.10+
 - PyTorch 2.0+
 
+## 💾 Low VRAM Support (8-12GB GPUs)
+
+This node is optimized for systems with limited VRAM. If you're running ComfyUI with `--lowvram` or `--novram` flags, the controlnet will automatically:
+
+1. **Stay on CPU** until inference starts
+2. **Move to GPU** only during the forward pass
+3. **Offload back to CPU** after generating hints
+
+### Recommended Launch Flags for 8GB GPUs
+
+```bash
+python main.py --lowvram --reserve-vram 1.0
+```
+
+### Manual Low VRAM Mode
+
+If auto-detection doesn't work, you can force low VRAM mode in the loader:
+
+| low_vram_mode | Behavior |
+|---------------|----------|
+| `auto`        | Detect from ComfyUI flags (default) |
+| `enabled`     | Force CPU offloading |
+| `disabled`    | Keep model on GPU |
+
 ## Nodes
 
 ### Load Flux2 Fun ControlNet
 
-Loads the ControlNet checkpoint.
+Loads the ControlNet checkpoint with memory-optimized settings.
 
-| Input           | Type     | Description            |
-|-----------------|----------|------------------------|
-| controlnet_name | dropdown | Select checkpoint file |
+| Input           | Type     | Description                               |
+|-----------------|----------|-------------------------------------------|
+| controlnet_name | dropdown | Select checkpoint file                    |
+| low_vram_mode   | dropdown | auto / enabled / disabled (default: auto) |
 
 | Output     | Type                 | Description  |
 |------------|----------------------|--------------|
@@ -121,6 +153,18 @@ This implementation:
 - Control context is 260 channels: 128 (control) + 4 (mask) + 128 (inpaint)
 - Native VideoX-Fun architecture with proper RoPE handling
 
+### Memory Architecture (v2.0)
+
+```
+Load:  checkpoint → CPU → Flux2FunControlNetContainer
+                          ↓
+Apply: VAE encode → control_context (CPU in low VRAM mode)
+                          ↓
+Inference: Container.to_device(GPU) → forward_control() → hints
+                          ↓
+Post-step: Container.offload_to_cpu() → free VRAM
+```
+
 ## Troubleshooting
 
 ### "Module not found" error
@@ -131,10 +175,18 @@ Restart ComfyUI after installation.
 - Verify VAE is connected
 - Ensure the control image is loaded correctly
 
-### Out of memory
-- Reduce image resolution
-- Use CPU offloading if available
+### Out of memory (OOM)
+- **First try**: Launch ComfyUI with `--lowvram --reserve-vram 1.0`
+- **Force low VRAM**: Set `low_vram_mode` to `enabled` in the loader
+- Reduce image resolution (try 512x512 or 768x768)
 - Close other GPU applications
+- If using GGUF models, they work best with low VRAM mode
+
+### Memory usage tips
+- The ControlNet model is ~8.3GB in fp16/bf16
+- With `--lowvram`, it stays on CPU (~0GB VRAM) until inference
+- During inference, it needs ~8.5GB temporarily
+- After each step, memory is released back
 
 ## Credits
 
