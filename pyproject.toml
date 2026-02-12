@@ -1,11 +1,12 @@
 [project]
 name = "comfyui-flux2fun-controlnet"
-version = "1.1.0"
-description = "ComfyUI implementation of FLUX.2-dev-Fun-Controlnet-Union from Alibaba's VideoX-Fun"
+version = "2.0.1"
+description = "ComfyUI implementation of FLUX.2-dev-Fun-Controlnet-Union with memory optimizations for low VRAM systems"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Bryan McGuire"}
+    {name = "Bryan McGuire"},
+    {name = "nkVas1", email = "nkVas1@users.noreply.github.com"}
 ]
 keywords = [
     "comfyui",
@@ -41,9 +42,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bmcguire/comfyui-flux2fun-controlnet"
-Repository = "https://github.com/bryanmcguire/comfyui-flux2fun-controlnet"
-Issues = "https://github.com/bmcguire/comfyui-flux2fun-controlnet/issues"
+Homepage = "https://github.com/nkVas1/comfyui-flux2fun-controlnet"
+Repository = "https://github.com/nkVas1/comfyui-flux2fun-controlnet"
+Upstream = "https://github.com/bryanmcguire/comfyui-flux2fun-controlnet"
+Issues = "https://github.com/nkVas1/comfyui-flux2fun-controlnet/issues"
 
 [tool.comfy]
 PublisherId = "scrybz"
